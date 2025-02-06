@@ -33,8 +33,13 @@ document.getElementById('loginForm')?.addEventListener('submit', function (e) {
     .then(response => response.json())
     .then(data => {
         if (data.access) {
-            localStorage.setItem('token', data.access); // Save JWT token
-            window.location.href = data.redirect; // Redirect to the appropriate portal
+            localStorage.setItem('access_token', data.access);
+            localStorage.setItem('refresh_token', data.refresh); // Save JWT tokens
+            if (data.redirect) {
+                window.location.href = data.redirect; // Redirect to the appropriate portal
+            } else {
+                alert('Login failed: No redirect URL provided.');
+            }
         } else {
             alert('Login failed!');
         }
@@ -60,7 +65,7 @@ document.getElementById('registerForm')?.addEventListener('submit', function (e)
     .then(data => {
         if (data.username) {
             alert('Registration successful!');
-            window.location.href = '/login/'; // Redirect to login page
+            window.location.href = '/signin/'; // Redirect to login page
         } else {
             alert('Registration failed!');
         }
@@ -69,7 +74,13 @@ document.getElementById('registerForm')?.addEventListener('submit', function (e)
 
 // Fetch doctors and populate the dropdown
 function fetchDoctors() {
-    fetch('/api/appointments/doctors/')
+    const token = localStorage.getItem('token');
+    fetch('/api/appointments/doctors/', {
+        headers: {
+            'Authorization': `JWT ${token}`,
+            'X-CSRFToken': csrftoken,
+        }
+    })
         .then(response => response.json())
         .then(data => {
             const doctorSelect = document.getElementById('doctorSelect');

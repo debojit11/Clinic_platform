@@ -15,6 +15,14 @@ class UserSerializer(ModelSerializer):
         fields = ('username', 'password', 'email')
         extra_kwargs = {'password': {'write_only': True}}
 
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (AllowAny,)
@@ -41,9 +49,9 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         if response.status_code == status.HTTP_200_OK:
             user = User.objects.get(username=request.data['username'])
             if hasattr(user, 'patient'):
-                response.data['redirect'] = '/patient-portal/'
+                response.data['redirect'] = '/patient/patient-portal/'  # Correct URL
             elif hasattr(user, 'doctor'):
-                response.data['redirect'] = '/doctor-portal/'
+                response.data['redirect'] = '/doctor/doctor-portal/'  # Correct URL
         return response
     
 
