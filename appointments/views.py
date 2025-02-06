@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics, permissions
 from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
@@ -73,3 +74,7 @@ class AvailabilityListView(generics.ListAPIView):
     queryset = Availability.objects.all()
     serializer_class = AvailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+def doctor_portal_view(request):
+    return render(request, 'appointments/doctor_portal.html')

@@ -1,3 +1,4 @@
+from django.shortcuts import render
 from rest_framework import generics, permissions
 from .models import Patient, MedicalRecord
 from .serializers import PatientSerializer, MedicalRecordSerializer
@@ -39,3 +40,7 @@ class DeleteRecordView(generics.DestroyAPIView):
     queryset = MedicalRecord.objects.all()
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
+
+
+def patient_portal_view(request):
+    return render(request, 'records/patient_portal.html')

@@ -1,4 +1,5 @@
 # accounts/views.py
+from django.shortcuts import render
 from rest_framework import generics, status
 from rest_framework.response import Response
 from django.contrib.auth.models import User
@@ -44,3 +45,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             elif hasattr(user, 'doctor'):
                 response.data['redirect'] = '/doctor-portal/'
         return response
+    
+
+def login_view(request):
+    return render(request, 'accounts/login.html')
+
+def register_view(request):
+    return render(request, 'accounts/register.html')
