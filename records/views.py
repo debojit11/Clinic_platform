@@ -1,7 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import generics, permissions
 from .models import Patient, MedicalRecord
+from appointments.models import Appointment
 from .serializers import PatientSerializer, MedicalRecordSerializer
+from django.contrib.auth.decorators import login_required
+from .forms import PatientDetailsForm, MedicalRecordForm
 
 # Register a new patient
 class RegisterPatientView(generics.CreateAPIView):
@@ -43,4 +46,34 @@ class DeleteRecordView(generics.DestroyAPIView):
 
 
 def patient_portal_view(request):
-    return render(request, 'records/patient_portal.html')
+    if not request.user.is_authenticated or not hasattr(request.user, 'patient'):
+        return redirect('login')
+
+    patient = request.user.patient
+    appointments = Appointment.objects.filter(patient=patient)
+    medical_records = MedicalRecord.objects.filter(patient=patient)
+
+    if request.method == 'POST':
+        if 'update_details' in request.POST:
+            details_form = PatientDetailsForm(request.POST, instance=patient)
+            if details_form.is_valid():
+                details_form.save()
+                return redirect('patient-portal')
+        elif 'add_record' in request.POST:
+            record_form = MedicalRecordForm(request.POST)
+            if record_form.is_valid():
+                record = record_form.save(commit=False)
+                record.patient = patient
+                record.save()
+                return redirect('patient-portal')
+    else:
+        details_form = PatientDetailsForm(instance=patient)
+        record_form = MedicalRecordForm()
+
+    return render(request, 'records/patient_portal.html', {
+        'patient': patient,
+        'appointments': appointments,
+        'medical_records': medical_records,
+        'details_form': details_form,
+        'record_form': record_form,
+    })

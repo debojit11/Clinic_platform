@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework import generics, permissions
 from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
@@ -7,6 +7,8 @@ from django.db import transaction
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from .tasks import send_appointment_reminder  # For notifications
+from django.contrib.auth.decorators import login_required
+from .forms import AvailabilityForm, AppointmentForm
 
 class AppointmentListCreateView(generics.ListCreateAPIView):
     queryset = Appointment.objects.all()
@@ -75,6 +77,34 @@ class AvailabilityListView(generics.ListAPIView):
     serializer_class = AvailabilitySerializer
     permission_classes = [permissions.IsAuthenticated]
 
-
 def doctor_portal_view(request):
-    return render(request, 'appointments/doctor_portal.html')
+    if not request.user.is_authenticated or not hasattr(request.user, 'doctor'):
+        return redirect('login')
+
+    doctor = request.user.doctor
+    appointments = Appointment.objects.filter(doctor=doctor)
+    availability_slots = Availability.objects.filter(doctor=doctor)
+
+    if request.method == 'POST':
+        if 'add_availability' in request.POST:
+            availability_form = AvailabilityForm(request.POST)
+            if availability_form.is_valid():
+                availability = availability_form.save(commit=False)
+                availability.doctor = doctor
+                availability.save()
+                return redirect('doctor-portal')
+        elif 'confirm_appointment' in request.POST:
+            appointment_id = request.POST.get('appointment_id')
+            appointment = Appointment.objects.get(id=appointment_id)
+            appointment.is_confirmed = True
+            appointment.save()
+            return redirect('doctor-portal')
+    else:
+        availability_form = AvailabilityForm()
+
+    return render(request, 'appointments/doctor_portal.html', {
+        'doctor': doctor,
+        'appointments': appointments,
+        'availability_slots': availability_slots,
+        'availability_form': availability_form,
+    })
