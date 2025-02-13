@@ -79,7 +79,7 @@ class AvailabilityListView(generics.ListAPIView):
 
 def doctor_portal_view(request):
     if not request.user.is_authenticated or not hasattr(request.user, 'doctor'):
-        return redirect('login')
+        return redirect('signin')
 
     doctor = request.user.doctor
     appointments = Appointment.objects.filter(doctor=doctor)

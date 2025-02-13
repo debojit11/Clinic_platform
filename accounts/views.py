@@ -68,17 +68,26 @@ def login_view(request):
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
+            
             if user is not None:
                 login(request, user)
+                print(f"Redirecting user {user.username}")  # Debugging
+                
+                # Force redirect to the correct portal
                 if hasattr(user, 'patient'):
-                    return redirect('patient/patient-portal')
+                    return redirect('patient-portal')
                 elif hasattr(user, 'doctor'):
-                    return redirect('doctor/doctor-portal')
+                    return redirect('doctor-portal')
             else:
+                print("Authentication failed")  # Debugging
                 form.add_error(None, 'Invalid username or password.')
+        else:
+            print("Form validation failed")  # Debugging
     else:
         form = LoginForm()
+    
     return render(request, 'accounts/login.html', {'form': form})
+
 
 def register_view(request):
     if request.method == 'POST':
@@ -90,7 +99,7 @@ def register_view(request):
                 Patient.objects.create(user=user, name=user.username)
             elif role == 'doctor':
                 Doctor.objects.create(user=user, specialization='General')
-            return redirect('login')
+            return redirect('signin')
     else:
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})

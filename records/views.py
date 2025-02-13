@@ -47,7 +47,7 @@ class DeleteRecordView(generics.DestroyAPIView):
 
 def patient_portal_view(request):
     if not request.user.is_authenticated or not hasattr(request.user, 'patient'):
-        return redirect('login')
+        return redirect('signin')
 
     patient = request.user.patient
     appointments = Appointment.objects.filter(patient=patient)

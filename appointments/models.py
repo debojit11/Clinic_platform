@@ -41,6 +41,7 @@ class Appointment(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     appointment_date = models.DateField()
+    availability = models.ForeignKey(Availability, on_delete=models.CASCADE, null=True, blank=True)
     reason = models.TextField()
     is_confirmed = models.BooleanField(default=False)
 
