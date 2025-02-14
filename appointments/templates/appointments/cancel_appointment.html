@@ -1,0 +1,25 @@
+<!-- assignment/appointments/templates/appointments/cancel_appointment.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cancel Appointment - Clinic360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Cancel Appointment</h1>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <p>Are you sure you want to cancel this appointment?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Cancel</button>
+                    <a href="{% url 'patient-portal' %}" class="btn btn-secondary">No, Go Back</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

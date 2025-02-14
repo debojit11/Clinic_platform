@@ -1,3 +1,4 @@
+<!-- assignment/records/templates/records/patient_portal.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,6 +21,7 @@
             </div>
             <div class="col-md-8">
                 <h3>Appointments</h3>
+                <a href="{% url 'book-appointment' %}" class="btn btn-success mb-3">Book New Appointment</a>
                 <table class="table">
                     <thead>
                         <tr>
@@ -27,6 +29,7 @@
                             <th>Doctor</th>
                             <th>Time Slot</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -36,6 +39,10 @@
                             <td>{{ appointment.doctor.user.username }}</td>
                             <td>{{ appointment.availability.start_time }} - {{ appointment.availability.end_time }}</td>
                             <td>{{ appointment.is_confirmed|yesno:"Confirmed,Pending" }}</td>
+                            <td>
+                                <a href="{% url 'reschedule-appointment' appointment.id %}" class="btn btn-warning btn-sm">Reschedule</a>
+                                <a href="{% url 'cancel-appointment' appointment.id %}" class="btn btn-danger btn-sm">Cancel</a>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -62,13 +69,6 @@
                         {% endfor %}
                     </tbody>
                 </table>
-
-                <h3>Add Medical Record</h3>
-                <form method="post" action="{% url 'patient-portal' %}">
-                    {% csrf_token %}
-                    {{ record_form.as_p }}
-                    <button type="submit" name="add_record" class="btn btn-primary">Add Record</button>
-                </form>
             </div>
         </div>
     </div>

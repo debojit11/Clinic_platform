@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics, permissions
 from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
 from .serializers import AppointmentSerializer, DoctorSerializer, AvailabilitySerializer
 from django.db import transaction
+from django.contrib import messages
 from datetime import timedelta
 from django.core.exceptions import ValidationError
 from .tasks import send_appointment_reminder  # For notifications
@@ -108,3 +109,41 @@ def doctor_portal_view(request):
         'availability_slots': availability_slots,
         'availability_form': availability_form,
     })
+
+@login_required
+def book_appointment(request, availability_id):
+    availability = get_object_or_404(Availability, id=availability_id)
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST)
+        if form.is_valid():
+            appointment = form.save(commit=False)
+            appointment.patient = request.user.patient
+            appointment.doctor = availability.doctor
+            appointment.availability = availability
+            appointment.save()
+            messages.success(request, 'Appointment booked successfully!')
+            return redirect('patient-portal')
+    else:
+        form = AppointmentForm()
+    return render(request, 'appointments/book_appointment.html', {'form': form, 'availability': availability})
+
+@login_required
+def reschedule_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        form = AppointmentForm(request.POST, instance=appointment)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Appointment rescheduled successfully!')
+            return redirect('patient-portal')
+    else:
+        form = AppointmentForm(instance=appointment)
+    return render(request, 'appointments/reschedule_appointment.html', {'form': form, 'appointment': appointment})
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    appointment = get_object_or_404(Appointment, id=appointment_id)
+    if request.method == 'POST':
+        appointment.delete()
+        messages.success(request, 'Appointment canceled successfully!')
+    return redirect('patient-portal')

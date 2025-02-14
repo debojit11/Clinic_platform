@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.contrib import messages
 from rest_framework import generics, permissions
 from .models import Patient, MedicalRecord
 from appointments.models import Appointment
@@ -58,22 +59,14 @@ def patient_portal_view(request):
             details_form = PatientDetailsForm(request.POST, instance=patient)
             if details_form.is_valid():
                 details_form.save()
-                return redirect('patient-portal')
-        elif 'add_record' in request.POST:
-            record_form = MedicalRecordForm(request.POST)
-            if record_form.is_valid():
-                record = record_form.save(commit=False)
-                record.patient = patient
-                record.save()
+                messages.success(request, 'Personal details updated successfully!')
                 return redirect('patient-portal')
     else:
         details_form = PatientDetailsForm(instance=patient)
-        record_form = MedicalRecordForm()
 
     return render(request, 'records/patient_portal.html', {
         'patient': patient,
         'appointments': appointments,
         'medical_records': medical_records,
         'details_form': details_form,
-        'record_form': record_form,
     })
