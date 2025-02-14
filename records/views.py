@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from rest_framework import generics, permissions
 from .models import Patient, MedicalRecord
-from appointments.models import Appointment
+from appointments.models import Appointment, Availability
 from .serializers import PatientSerializer, MedicalRecordSerializer
 from django.contrib.auth.decorators import login_required
 from .forms import PatientDetailsForm, MedicalRecordForm
