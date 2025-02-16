@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics, permissions
 from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
+from records.models import MedicalRecord
 from .serializers import AppointmentSerializer, DoctorSerializer, AvailabilitySerializer
 from django.db import transaction
 from django.contrib import messages
@@ -9,7 +10,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from .tasks import send_appointment_reminder  # For notifications
 from django.contrib.auth.decorators import login_required
-from .forms import AvailabilityForm, AppointmentForm
+from .forms import AvailabilityForm, AppointmentForm, MedicalRecordForm
 
 class AppointmentListCreateView(generics.ListCreateAPIView):
     queryset = Appointment.objects.all()
@@ -83,8 +84,9 @@ def doctor_portal_view(request):
         return redirect('signin')
 
     doctor = request.user.doctor
-    appointments = Appointment.objects.filter(doctor=doctor)
+    appointments = Appointment.objects.filter(doctor=doctor).select_related('patient')
     availability_slots = Availability.objects.filter(doctor=doctor)
+    medical_records = MedicalRecord.objects.filter(patient__appointment__doctor=doctor).distinct()
 
     if request.method == 'POST':
         if 'add_availability' in request.POST:
@@ -94,21 +96,51 @@ def doctor_portal_view(request):
                 availability.doctor = doctor
                 availability.save()
                 return redirect('doctor-portal')
+
+        elif 'delete_availability' in request.POST:
+            availability_id = request.POST.get('availability_id')
+            Availability.objects.filter(id=availability_id, doctor=doctor).delete()
+            return redirect('doctor-portal')
+
         elif 'confirm_appointment' in request.POST:
             appointment_id = request.POST.get('appointment_id')
-            appointment = Appointment.objects.get(id=appointment_id)
+            appointment = Appointment.objects.get(id=appointment_id, doctor=doctor)
             appointment.is_confirmed = True
             appointment.save()
             return redirect('doctor-portal')
+
+        elif 'delete_medical_record' in request.POST:
+            record_id = request.POST.get('record_id')
+            MedicalRecord.objects.filter(id=record_id).delete()
+            return redirect('doctor-portal')
+
+        elif 'update_medical_record' in request.POST:
+            record_id = request.POST.get('record_id')
+            medical_record = MedicalRecord.objects.get(id=record_id)
+            form = MedicalRecordForm(request.POST, instance=medical_record, doctor=doctor)
+            if form.is_valid():
+                form.save()
+            return redirect('doctor-portal')
+
+        elif 'add_medical_record' in request.POST:
+            medical_record_form = MedicalRecordForm(request.POST, doctor=doctor)
+            if medical_record_form.is_valid():
+                medical_record_form.save()
+                return redirect('doctor-portal')
+
     else:
         availability_form = AvailabilityForm()
+        medical_record_form = MedicalRecordForm(doctor=doctor)
 
     return render(request, 'appointments/doctor_portal.html', {
         'doctor': doctor,
         'appointments': appointments,
         'availability_slots': availability_slots,
         'availability_form': availability_form,
+        'medical_record_form': medical_record_form,
+        'medical_records': medical_records,
     })
+
 
 @login_required
 def book_appointment(request):
@@ -117,6 +149,7 @@ def book_appointment(request):
         if form.is_valid():
             appointment = form.save(commit=False)
             appointment.patient = request.user.patient
+            appointment.appointment_date = form.cleaned_data['availability'].date
             appointment.save()
             messages.success(request, 'Appointment booked successfully!')
             return redirect('patient-portal')
@@ -126,6 +159,7 @@ def book_appointment(request):
     return render(request, 'appointments/book_appointment.html', {
         'form': form,
     })
+
 
 @login_required
 def reschedule_appointment(request, appointment_id):
