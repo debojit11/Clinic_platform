@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=50, null=True, blank=True)
+    last_name = models.CharField(max_length=50, null=True, blank=True)
     specialization = models.CharField(max_length=100)
     contact = models.CharField(max_length=15)
 
@@ -33,7 +35,7 @@ class Availability(models.Model):
         return slots
 
     def __str__(self):
-        return f'{self.doctor} - {self.date} from {self.start_time} to {self.end_time}'
+        return f'{self.doctor.first_name} - {self.date} from {self.start_time} to {self.end_time}'
 
     
 

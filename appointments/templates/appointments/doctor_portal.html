@@ -10,8 +10,16 @@
     <div class="container mt-5">
         <h1 class="text-center">Doctor Portal</h1>
         <div class="row mt-5">
-            <div class="col-md-4">
-                <h3>Manage Availability</h3>
+            <!-- Merged Personal Details and Manage Availability Section -->
+            <div class="col-md-6">
+                <h3>Personal Details</h3>
+                <form method="post" action="{% url 'doctor-portal' %}">
+                    {% csrf_token %}
+                    {{ details_form.as_p }}
+                    <button type="submit" name="update_details" class="btn btn-primary">Update Details</button>
+                </form>
+
+                <h3 class="mt-5">Manage Availability</h3>
                 <form method="post" action="{% url 'doctor-portal' %}">
                     {% csrf_token %}
                     {{ availability_form.as_p }}
@@ -45,7 +53,9 @@
                     </tbody>
                 </table>
             </div>
-            <div class="col-md-8">
+
+            <!-- Scheduled Appointments and Medical Records Section -->
+            <div class="col-md-6">
                 <h3>Scheduled Appointments</h3>
                 <table class="table">
                     <thead>
@@ -54,7 +64,6 @@
                             <th>Patient</th>
                             <th>Time Slot</th>
                             <th>Status</th>
-                            <th>Medical Records</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -65,24 +74,6 @@
                             <td>{{ appointment.patient.name }}</td>
                             <td>{{ appointment.availability.start_time }} - {{ appointment.availability.end_time }}</td>
                             <td>{{ appointment.is_confirmed|yesno:"Confirmed,Pending" }}</td>
-                            <td>
-                                {% for record in appointment.patient.medicalrecord_set.all %}
-                                    <p>{{ record.description }}</p>
-                                    <form method="post" action="{% url 'doctor-portal' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="record_id" value="{{ record.id }}">
-                                        <button type="submit" name="delete_medical_record" class="btn btn-danger btn-sm">Delete</button>
-                                    </form>
-                                    <form method="post" action="{% url 'doctor-portal' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="record_id" value="{{ record.id }}">
-                                        <input type="text" name="description" value="{{ record.description }}" required>
-                                        <button type="submit" name="update_medical_record" class="btn btn-warning btn-sm">Update</button>
-                                    </form>
-                                {% empty %}
-                                    <p>No medical records available.</p>
-                                {% endfor %}
-                            </td>
                             <td>
                                 {% if not appointment.is_confirmed %}
                                 <form method="post" action="{% url 'doctor-portal' %}">
@@ -96,6 +87,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+
                 <h3 class="mt-5">Medical Records</h3>
                 <table class="table">
                     <thead>
@@ -115,24 +107,24 @@
                             <td>{{ record.diagnosis }}</td>
                             <td>{{ record.treatment }}</td>
                             <td>{{ record.doctor_notes }}</td>
-                                <!-- Update Medical Record Form -->
-                                <form method="post" action="{% url 'doctor-portal' %}">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="date" value="{{ record.date }}">
-                                    <input type="hidden" name="record_id" value="{{ record.id }}">
-                                    <input type="text" name="diagnosis" value="{{ record.diagnosis }}" required>
-                                    <input type="text" name="treatment" value="{{ record.treatment }}" required>
-                                    <input type="text" name="doctor_notes" value="{{ record.doctor_notes }}" required>
-                                    <button type="submit" name="update_medical_record" class="btn btn-warning btn-sm">Update</button>
-                                </form>
+                            <!-- Update Medical Record Form -->
+                            <form method="post" action="{% url 'doctor-portal' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="date" value="{{ record.date }}">
+                                <input type="hidden" name="record_id" value="{{ record.id }}">
+                                <input type="text" name="diagnosis" value="{{ record.diagnosis }}" required>
+                                <input type="text" name="treatment" value="{{ record.treatment }}" required>
+                                <input type="text" name="doctor_notes" value="{{ record.doctor_notes }}" required>
+                                <button type="submit" name="update_medical_record" class="btn btn-warning btn-sm">Update</button>
+                            </form>
 
-                                <!-- Delete Medical Record -->
-                                <form method="post" action="{% url 'doctor-portal' %}" style="display:inline;">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="record_id" value="{{ record.id }}">
-                                    <button type="submit" name="delete_medical_record" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
+                            <!-- Delete Medical Record -->
+                            <form method="post" action="{% url 'doctor-portal' %}" style="display:inline;">
+                                {% csrf_token %}
+                                <input type="hidden" name="record_id" value="{{ record.id }}">
+                                <button type="submit" name="delete_medical_record" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
                         </tr>
                         {% empty %}
                         <tr>

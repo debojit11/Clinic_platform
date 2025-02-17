@@ -36,7 +36,7 @@
                         {% for appointment in appointments %}
                         <tr>
                             <td>{{ appointment.appointment_date }}</td>
-                            <td>{{ appointment.doctor.user.username }}</td>
+                            <td>Dr. {{ appointment.doctor.user.first_name }} {{ appointment.doctor.user.last_name }}</td>
                             <td>{{ appointment.availability.start_time }} - {{ appointment.availability.end_time }}</td>
                             <td>{{ appointment.is_confirmed|yesno:"Confirmed,Pending" }}</td>
                             <td>

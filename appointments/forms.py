@@ -23,15 +23,26 @@ class AppointmentForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if 'doctor' in self.data:
+
+        print("Form data:", self.data)  # Debug print
+
+        if 'doctor' in self.data and 'date' in self.data:
             try:
                 doctor_id = int(self.data.get('doctor'))
+                selected_date = self.data.get('date')
+
+                print("Filtering availability for:", doctor_id, selected_date)  # Debug print
+
                 self.fields['availability'].queryset = Availability.objects.filter(
                     doctor_id=doctor_id,
-                    date=self.data.get('date')
+                    date=selected_date
                 )
-            except (ValueError, TypeError):
-                pass
+
+                print("Available slots in form:", self.fields['availability'].queryset)  # Debug print
+
+            except (ValueError, TypeError) as e:
+                print("Error:", e)  # Debug print
+                self.fields['availability'].queryset = Availability.objects.none()
 
 class MedicalRecordForm(forms.ModelForm):
     date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True)
@@ -44,3 +55,8 @@ class MedicalRecordForm(forms.ModelForm):
         if doctor:
             # Filter patients who have had appointments with this doctor
             self.fields['patient'].queryset = Patient.objects.filter(appointment__doctor=doctor).distinct()
+
+class DoctorForm(forms.ModelForm):
+    class Meta:
+        model = Doctor
+        fields = ['first_name', 'last_name', 'specialization', 'contact']

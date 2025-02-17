@@ -23,3 +23,35 @@
     </div>
 </body>
 </html>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    function updateAvailability() {
+        let doctor = $("#id_doctor").val();
+        let date = $("#id_date").val();
+
+        if (doctor && date) {
+            $.ajax({
+                url: "{% url 'get_available_slots' %}",
+                data: { doctor: doctor, date: date },
+                dataType: "json",
+                success: function(data) {
+                    let availabilityField = $("#id_availability");
+                    availabilityField.empty();
+
+                    if (data.slots.length > 0) {
+                        data.slots.forEach(slot => {
+                            availabilityField.append(new Option(slot.text, slot.id));
+                        });
+                    } else {
+                        availabilityField.append(new Option("No available slots", ""));
+                    }
+                }
+            });
+        }
+    }
+
+    // Trigger update when doctor or date fields change
+    $("#id_doctor, #id_date").change(updateAvailability);
+});
+</script>

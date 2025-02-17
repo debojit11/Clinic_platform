@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import JsonResponse
 from rest_framework import generics, permissions
 from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
@@ -10,7 +11,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from .tasks import send_appointment_reminder  # For notifications
 from django.contrib.auth.decorators import login_required
-from .forms import AvailabilityForm, AppointmentForm, MedicalRecordForm
+from .forms import AvailabilityForm, AppointmentForm, MedicalRecordForm, DoctorForm
 
 class AppointmentListCreateView(generics.ListCreateAPIView):
     queryset = Appointment.objects.all()
@@ -89,6 +90,14 @@ def doctor_portal_view(request):
     medical_records = MedicalRecord.objects.filter(patient__appointment__doctor=doctor).distinct()
 
     if request.method == 'POST':
+        if 'update_details' in request.POST:
+            details_form = DoctorForm(request.POST, instance=doctor)
+            if details_form.is_valid():
+                details_form.save()
+                messages.success(request, 'Personal details updated successfully!')
+                return redirect('doctor-portal')
+            
+    elif request.method == 'POST':
         if 'add_availability' in request.POST:
             availability_form = AvailabilityForm(request.POST)
             if availability_form.is_valid():
@@ -131,6 +140,7 @@ def doctor_portal_view(request):
     else:
         availability_form = AvailabilityForm()
         medical_record_form = MedicalRecordForm(doctor=doctor)
+        details_form = DoctorForm(instance=doctor)
 
     return render(request, 'appointments/doctor_portal.html', {
         'doctor': doctor,
@@ -139,6 +149,7 @@ def doctor_portal_view(request):
         'availability_form': availability_form,
         'medical_record_form': medical_record_form,
         'medical_records': medical_records,
+        'details_form': details_form,
     })
 
 
@@ -181,3 +192,14 @@ def cancel_appointment(request, appointment_id):
         appointment.delete()
         messages.success(request, 'Appointment canceled successfully!')
     return redirect('patient-portal')
+
+def get_available_slots(request):
+    doctor_id = request.GET.get('doctor')
+    date = request.GET.get('date')
+
+    if doctor_id and date:
+        slots = Availability.objects.filter(doctor_id=doctor_id, date=date)
+        slot_data = [{'id': slot.id, 'text': f"{slot.start_time} - {slot.end_time}"} for slot in slots]
+        return JsonResponse({'slots': slot_data})
+
+    return JsonResponse({'slots': []})
