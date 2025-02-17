@@ -71,7 +71,7 @@
                         {% for appointment in appointments %}
                         <tr>
                             <td>{{ appointment.appointment_date }}</td>
-                            <td>{{ appointment.patient.name }}</td>
+                            <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
                             <td>{{ appointment.availability.start_time }} - {{ appointment.availability.end_time }}</td>
                             <td>{{ appointment.is_confirmed|yesno:"Confirmed,Pending" }}</td>
                             <td>
@@ -97,42 +97,41 @@
                             <th>Diagnosis</th>
                             <th>Treatment</th>
                             <th>Doctor Notes</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for record in medical_records %}
                         <tr>
                             <td>{{ record.date }}</td>
-                            <td>{{ record.patient.name }}</td>
+                            <td>{{ record.patient.first_name }}</td>
                             <td>{{ record.diagnosis }}</td>
                             <td>{{ record.treatment }}</td>
                             <td>{{ record.doctor_notes }}</td>
-                            <!-- Update Medical Record Form -->
-                            <form method="post" action="{% url 'doctor-portal' %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="date" value="{{ record.date }}">
-                                <input type="hidden" name="record_id" value="{{ record.id }}">
-                                <input type="text" name="diagnosis" value="{{ record.diagnosis }}" required>
-                                <input type="text" name="treatment" value="{{ record.treatment }}" required>
-                                <input type="text" name="doctor_notes" value="{{ record.doctor_notes }}" required>
-                                <button type="submit" name="update_medical_record" class="btn btn-warning btn-sm">Update</button>
-                            </form>
+                            <td>
+                                <!-- Update Medical Record Form -->
+                                <form method="post" action="{% url 'doctor-portal' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="record_id" value="{{ record.id }}">
+                                    <button type="submit" name="update_medical_record" class="btn btn-warning btn-sm">Update</button>
+                                </form>
 
-                            <!-- Delete Medical Record -->
-                            <form method="post" action="{% url 'doctor-portal' %}" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="record_id" value="{{ record.id }}">
-                                <button type="submit" name="delete_medical_record" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                        </td>
+                                <!-- Delete Medical Record -->
+                                <form method="post" action="{% url 'doctor-portal' %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="record_id" value="{{ record.id }}">
+                                    <button type="submit" name="delete_medical_record" class="btn btn-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4">No medical records available.</td>
+                            <td colspan="6">No medical records available.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+
 
                 <h4>Add Medical Record</h4>
                 <form method="post" action="{% url 'doctor-portal' %}">

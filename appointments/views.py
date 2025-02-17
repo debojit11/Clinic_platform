@@ -85,9 +85,10 @@ def doctor_portal_view(request):
         return redirect('signin')
 
     doctor = request.user.doctor
-    appointments = Appointment.objects.filter(doctor=doctor).select_related('patient')
-    availability_slots = Availability.objects.filter(doctor=doctor)
-    medical_records = MedicalRecord.objects.filter(patient__appointment__doctor=doctor).distinct()
+
+    availability_form = AvailabilityForm()
+    medical_record_form = MedicalRecordForm(doctor=doctor)
+    details_form = DoctorForm(instance=doctor)
 
     if request.method == 'POST':
         if 'update_details' in request.POST:
@@ -96,19 +97,20 @@ def doctor_portal_view(request):
                 details_form.save()
                 messages.success(request, 'Personal details updated successfully!')
                 return redirect('doctor-portal')
-            
-    elif request.method == 'POST':
-        if 'add_availability' in request.POST:
+
+        elif 'add_availability' in request.POST:  # 🛠 FIXED: Now properly inside the same block
             availability_form = AvailabilityForm(request.POST)
             if availability_form.is_valid():
                 availability = availability_form.save(commit=False)
                 availability.doctor = doctor
                 availability.save()
+                messages.success(request, 'Availability slot added successfully!')
                 return redirect('doctor-portal')
 
         elif 'delete_availability' in request.POST:
             availability_id = request.POST.get('availability_id')
             Availability.objects.filter(id=availability_id, doctor=doctor).delete()
+            messages.success(request, 'Availability slot deleted successfully!')
             return redirect('doctor-portal')
 
         elif 'confirm_appointment' in request.POST:
@@ -116,11 +118,13 @@ def doctor_portal_view(request):
             appointment = Appointment.objects.get(id=appointment_id, doctor=doctor)
             appointment.is_confirmed = True
             appointment.save()
+            messages.success(request, 'Appointment confirmed!')
             return redirect('doctor-portal')
 
         elif 'delete_medical_record' in request.POST:
             record_id = request.POST.get('record_id')
             MedicalRecord.objects.filter(id=record_id).delete()
+            messages.success(request, 'Medical record deleted successfully!')
             return redirect('doctor-portal')
 
         elif 'update_medical_record' in request.POST:
@@ -129,18 +133,19 @@ def doctor_portal_view(request):
             form = MedicalRecordForm(request.POST, instance=medical_record, doctor=doctor)
             if form.is_valid():
                 form.save()
+            messages.success(request, 'Medical record updated successfully!')
             return redirect('doctor-portal')
 
         elif 'add_medical_record' in request.POST:
             medical_record_form = MedicalRecordForm(request.POST, doctor=doctor)
             if medical_record_form.is_valid():
                 medical_record_form.save()
+                messages.success(request, 'Medical record added successfully!')
                 return redirect('doctor-portal')
 
-    else:
-        availability_form = AvailabilityForm()
-        medical_record_form = MedicalRecordForm(doctor=doctor)
-        details_form = DoctorForm(instance=doctor)
+    appointments = Appointment.objects.filter(doctor=doctor).select_related('patient')
+    availability_slots = Availability.objects.filter(doctor=doctor)
+    medical_records = MedicalRecord.objects.filter(patient__appointment__doctor=doctor).distinct()
 
     return render(request, 'appointments/doctor_portal.html', {
         'doctor': doctor,
