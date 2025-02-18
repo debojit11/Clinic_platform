@@ -3,15 +3,18 @@ from django.contrib.auth.models import User
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient')  # Linked to a user
-    first_name = models.CharField(max_length=50, null=True, blank=True)
-    last_name = models.CharField(max_length=50, null=True, blank=True)
     age = models.IntegerField(null=True, blank=True)
-    gender = models.CharField(max_length=10, null=True, blank=True)
-    contact = models.CharField(max_length=15, null=True, blank=True)
+    gender = models.CharField(null=True, blank=True, max_length=10)
+    contact = models.CharField(max_length=15, blank=True, null=True)
     medical_history = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return f'{self.first_name} {self.last_name}'
+        return f'{self.user.first_name} {self.user.last_name}'
+    
+    def save(self, *args, **kwargs):
+        if not self.email:
+            self.email = self.user.email  # Populate the email from User model if empty
+        super().save(*args, **kwargs)
 
 
 class MedicalRecord(models.Model):

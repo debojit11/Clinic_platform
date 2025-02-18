@@ -1,4 +1,6 @@
 from django import forms
+from datetime import datetime
+from django.utils import timezone
 from .models import Availability, Appointment, Doctor
 from records.models import MedicalRecord, Patient 
 
@@ -10,7 +12,6 @@ class AvailabilityForm(forms.ModelForm):
     class Meta:
         model = Availability
         fields = ['date', 'start_time', 'end_time']
-
 
 class AppointmentForm(forms.ModelForm):
     doctor = forms.ModelChoiceField(queryset=Doctor.objects.all(), required=True)
@@ -24,24 +25,26 @@ class AppointmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        print("Form data:", self.data)  # Debug print
+        # Get the current time with timezone aware datetime
+        current_datetime = timezone.now()
 
         if 'doctor' in self.data and 'date' in self.data:
             try:
                 doctor_id = int(self.data.get('doctor'))
                 selected_date = self.data.get('date')
 
-                print("Filtering availability for:", doctor_id, selected_date)  # Debug print
-
+                # Filter available slots for doctor and date greater than current time
+                # Assuming start_time is a DateTime field on the Availability model
                 self.fields['availability'].queryset = Availability.objects.filter(
                     doctor_id=doctor_id,
-                    date=selected_date
+                    date=selected_date,
+                    start_time__gt=current_datetime  # Filter slots after current time
+                ).exclude(
+                    appointment__isnull=False  # Exclude already booked slots (not canceled)
                 )
 
-                print("Available slots in form:", self.fields['availability'].queryset)  # Debug print
-
             except (ValueError, TypeError) as e:
-                print("Error:", e)  # Debug print
+                print("Error:", e)
                 self.fields['availability'].queryset = Availability.objects.none()
 
 class MedicalRecordForm(forms.ModelForm):
@@ -59,4 +62,30 @@ class MedicalRecordForm(forms.ModelForm):
 class DoctorForm(forms.ModelForm):
     class Meta:
         model = Doctor
-        fields = ['first_name', 'last_name', 'specialization', 'contact']
+        fields = ['specialization', 'contact']
+
+    first_name = forms.CharField(max_length=50, required=True)
+    last_name = forms.CharField(max_length=50, required=True)
+    email = forms.EmailField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.user:
+            self.fields['first_name'].initial = self.instance.user.first_name
+            self.fields['last_name'].initial = self.instance.user.last_name
+            self.fields['email'].initial = self.instance.user.email
+
+    def save(self, commit=True):
+        doctor = super().save(commit=False)
+
+        # Save first_name, last_name, and email to the associated User model
+        user = doctor.user
+        user.first_name = self.cleaned_data['first_name']
+        user.last_name = self.cleaned_data['last_name']
+        user.email = self.cleaned_data['email']
+        
+        if commit:
+            user.save()
+            doctor.save()
+
+        return doctor

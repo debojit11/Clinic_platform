@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from rest_framework import generics, permissions
 from .models import Patient, MedicalRecord
@@ -54,15 +54,32 @@ def patient_portal_view(request):
     appointments = Appointment.objects.filter(patient=patient)
     medical_records = MedicalRecord.objects.filter(patient=patient)
 
+    # Initialize the form with the patient's details
+    details_form = PatientDetailsForm(instance=patient)
+
+    # Ensure the form's email field is populated with the user's email from the User model
+    if not details_form.instance.user.email:
+        details_form.instance.user.email = request.user.email
+
     if request.method == 'POST':
         if 'update_details' in request.POST:
             details_form = PatientDetailsForm(request.POST, instance=patient)
             if details_form.is_valid():
-                details_form.save()
+                # Save the patient's details
+                patient = details_form.save()
+
+                # Manually update the User's related fields if they were modified
+                if 'email' in details_form.cleaned_data:
+                    request.user.email = details_form.cleaned_data['email']
+                if 'first_name' in details_form.cleaned_data:
+                    request.user.first_name = details_form.cleaned_data['first_name']
+                if 'last_name' in details_form.cleaned_data:
+                    request.user.last_name = details_form.cleaned_data['last_name']
+
+                request.user.save()
+
                 messages.success(request, 'Personal details updated successfully!')
                 return redirect('patient-portal')
-    else:
-        details_form = PatientDetailsForm(instance=patient)
 
     return render(request, 'records/patient_portal.html', {
         'patient': patient,

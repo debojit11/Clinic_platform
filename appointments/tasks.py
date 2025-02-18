@@ -11,8 +11,8 @@ def send_appointment_reminder(appointment_id):
 
         send_mail(
             'Appointment Reminder',
-            f'Dear {appointment.patient.name},\n\nYou have an appointment with {doctor_name} on {appointment.appointment_date}.\n\nBest regards,\nClinic 360',
-            'clinic360@example.com',
+            f'Dear {appointment.patient.first_name},\n\nYou have an appointment with {doctor_name} on {appointment.appointment_date}.\n\nBest regards,\nClinic ',
+            'clinic@example.com',
             [patient_email],
             fail_silently=False,
         )
