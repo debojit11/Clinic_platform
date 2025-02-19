@@ -11,10 +11,6 @@ class Patient(models.Model):
     def __str__(self):
         return f'{self.user.first_name} {self.user.last_name}'
     
-    def save(self, *args, **kwargs):
-        if not self.email:
-            self.email = self.user.email  # Populate the email from User model if empty
-        super().save(*args, **kwargs)
 
 
 class MedicalRecord(models.Model):
@@ -25,4 +21,4 @@ class MedicalRecord(models.Model):
     doctor_notes = models.TextField()
 
     def __str__(self):
-        return f'Record for {self.patient.first_name} {self.patient.last_name} - {self.date_created}'
+        return f'Record for {self.patient.user.first_name} {self.patient.user.last_name} - {self.date_created}'
