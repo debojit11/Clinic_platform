@@ -2,11 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from django.utils.timezone import make_aware
 from .models import Appointment, Doctor, Availability
 from records.models import MedicalRecord
 from .serializers import AppointmentSerializer, DoctorSerializer, AvailabilitySerializer
-from django.db import transaction
 from django.contrib import messages
 from datetime import datetime
 from django.utils import timezone
