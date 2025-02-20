@@ -96,10 +96,13 @@ def register_view(request):
             user = form.save()
             role = form.cleaned_data['role']
             if role == 'patient':
-                Patient.objects.create(user=user, first_name=user.first_name, last_name=user.last_name)
+                Patient.objects.create(user=user)
             elif role == 'doctor':
                 Doctor.objects.create(user=user, specialization='General')
             return redirect('signin')
     else:
         form = RegisterForm()
     return render(request, 'accounts/register.html', {'form': form})
+
+def welcome(request):
+    return render(request, 'accounts/welcome.html')
