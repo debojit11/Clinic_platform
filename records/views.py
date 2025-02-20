@@ -42,6 +42,7 @@ class UpdateRecordView(generics.UpdateAPIView):
 # Delete a medical record
 class DeleteRecordView(generics.DestroyAPIView):
     queryset = MedicalRecord.objects.all()
+    serializer_class = MedicalRecordSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'id'
 
