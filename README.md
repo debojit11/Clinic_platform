@@ -76,7 +76,7 @@ python manage.py runserver
 
 ## 🔌 API Access
 
-🛠️ **Interactive API Documentation:** [Swagger UI](https://clinic-platform.up.railway.app/api/docs/)  
+🛠️ **Interactive API Documentation:** [Clinic Platform API](https://clinic-platform.up.railway.app/api/docs/)  
 
 ---
 
@@ -114,4 +114,4 @@ This project is **open-source** under the **MIT License**. Check the `LICENSE` f
 ---
 
 💻 **Developed & Maintained by:** [@debojit11](https://github.com/debojit11)  
-🚀 **GitHub Repository:** [Clini Platform](https://github.com/debojit11/Clinic360_platform)
+🚀 **GitHub Repository:** [Clinic Platform](https://github.com/debojit11/Clinic360_platform)
