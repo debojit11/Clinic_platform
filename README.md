@@ -1,4 +1,4 @@
-# 🚀 Clinic360 Platform
+# 🚀 Clinic Platform
 
 Clinic Platform is a modern **Electronic Health Record (EHR) and Clinic Management System** designed to optimize clinic operations, patient record-keeping, and appointment scheduling. Built with **Django**, it empowers healthcare professionals with seamless, efficient, and secure management of their practice.
 
@@ -26,7 +26,7 @@ Clinic Platform is a modern **Electronic Health Record (EHR) and Clinic Manageme
 💾 **Database**: PostgreSQL / SQLite  
 🌐 **Frontend**: HTML, CSS (Admin Dashboard)  
 📡 **Deployment**: Railway.app, Gunicorn  
-🔐 **Authentication**: Django Authentication System
+🔐 **Authentication**: Django Authentication System 
 📨 **Asynchronous Tasks**: Celery, Redis (Used for background tasks like email notifications)  
 
 ---
@@ -47,7 +47,7 @@ Clinic Platform is a modern **Electronic Health Record (EHR) and Clinic Manageme
 1️⃣ **Clone the Repository**:
 ```bash
 git clone https://github.com/debojit11/Clinic360_platform.git
-cd Clinic360_platform
+cd Clini_platform
 ```
 
 2️⃣ **Create & Activate Virtual Environment**:
