@@ -26,7 +26,7 @@ Clinic Platform is a modern **Electronic Health Record (EHR) and Clinic Manageme
 💾 **Database**: PostgreSQL / SQLite  
 🌐 **Frontend**: HTML, CSS (Admin Dashboard)  
 📡 **Deployment**: Railway.app, Gunicorn  
-🔐 **Authentication**: Django Authentication System 
+🔐 **Authentication**: Django Authentication System   
 📨 **Asynchronous Tasks**: Celery, Redis (Used for background tasks like email notifications)  
 
 ---
